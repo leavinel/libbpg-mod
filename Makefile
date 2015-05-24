@@ -5,15 +5,15 @@
 # Enable compilation of Javascript decoder with Emscripten
 #USE_EMCC=y
 # Enable x265 for the encoder (you must install it before)
-#USE_X265=y
+USE_X265=y
 # Enable the JCTVC code (best quality but slow) for the encoder
 USE_JCTVC=y
 # Compile bpgview (SDL and SDL_image libraries needed)
-USE_BPGVIEW=y
+#USE_BPGVIEW=y
 # Enable it to use bit depths > 12 (need more tests to validate encoder)
 #USE_JCTVC_HIGH_BIT_DEPTH=y
 # Enable the cross compilation for Windows
-#CONFIG_WIN32=y
+CONFIG_WIN32=y
 # Enable for compilation on MacOS X
 #CONFIG_APPLE=y
 # Installation prefix
@@ -24,7 +24,7 @@ prefix=/usr/local
 
 ifdef CONFIG_WIN32
 #CROSS_PREFIX:=x86_64-w64-mingw32-
-CROSS_PREFIX=i686-w64-mingw32-
+#CROSS_PREFIX=i686-w64-mingw32-
 EXE:=.exe
 else
 CROSS_PREFIX:=
@@ -38,7 +38,7 @@ EMCC=emcc
 
 PWD:=$(shell pwd)
 
-CFLAGS:=-Os -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
+CFLAGS:=-O2 -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
 CFLAGS+=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
 CFLAGS+=-I.
 CFLAGS+=-DCONFIG_BPG_VERSION=\"$(shell cat VERSION)\"
@@ -77,7 +77,7 @@ hevc_cabac.o  hevc_filter.o  hevc.o         hevcpred.o  hevc_refs.o\
 hevcdsp.o     hevc_mvs.o     hevc_ps.o   hevc_sei.o\
 utils.o cabac.o golomb.o videodsp.o )
 LIBBPG_OBJS+=$(addprefix libavutil/, mem.o buffer.o log2_tab.o frame.o pixdesc.o md5.o )
-LIBBPG_OBJS+=libbpg.o
+LIBBPG_OBJS+=libbpg.o bpgenc.o
 
 LIBBPG_JS_OBJS:=$(patsubst %.o, %.js.o, $(LIBBPG_OBJS)) tmalloc.js.o
 
@@ -98,8 +98,10 @@ BPGENC_LIBS:=
 
 ifdef USE_X265
 BPGENC_OBJS+=x265_glue.o
+LIBBPG_OBJS+=x265_glue.o
 BPGENC_LIBS+= -lx265
 bpgenc.o: CFLAGS+=-DUSE_X265
+x265_glue.o: CFLAGS+=-I../libx265
 endif # USE_X265
 
 ifdef USE_JCTVC
@@ -126,6 +128,7 @@ jctvc/libjctvc.a: $(JCTVC_OBJS)
 	$(AR) rcs $@ $^
 
 BPGENC_OBJS+=jctvc_glue.o jctvc/libjctvc.a
+LIBBPG_OBJS+=jctvc_glue.o $(JCTVC_OBJS)
 
 bpgenc.o: CFLAGS+=-DUSE_JCTVC
 endif # USE_JCTVC

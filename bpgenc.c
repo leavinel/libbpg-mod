@@ -29,10 +29,12 @@
 #include <math.h>
 #include <assert.h>
 
-#include <png.h>
-#include <jpeglib.h>
+//#include <png.h>
+//#include <jpeglib.h>
 
 #include "bpgenc.h"
+#include "dprintf.h"
+#define fprintf(x, ...)     dprintf (__VA_ARGS__)
 
 typedef uint16_t PIXEL;
 
@@ -403,6 +405,44 @@ static RGBConvertFunc *rgb_to_cs[2][BPG_CS_COUNT] = {
     }
 };
     
+
+void bpg_gray8_to_img (Image *dst, const void *_src)
+{
+    const uint8_t *src = _src;
+
+    ColorConvertState cvt;
+    convert_init (&cvt, 8, dst->bit_depth, dst->color_space, 0);
+
+    int y;
+    for (y = 0; y < dst->h; y++)
+    {
+        gray8_to_gray (&cvt,
+            (PIXEL*)(dst->data[0] + y * dst->linesize[0]),
+            src + y * dst->w, dst->w, 1);
+    }
+}
+
+
+void bpg_rgb24_to_img (Image *dst, const void *_src)
+{
+    const uint8_t *src = _src;
+
+    ColorConvertState cvt;
+    convert_init (&cvt, 8, dst->bit_depth, dst->color_space, 0);
+
+    BPGColorSpaceEnum cs = dst->color_space;
+    RGBConvertFunc *f = rgb_to_cs[0][cs];
+    int y;
+    for (y = 0; y < dst->h; y++)
+    {
+        f (&cvt,
+            (PIXEL*)(dst->data[0] + y * dst->linesize[0]),
+            (PIXEL*)(dst->data[1] + y * dst->linesize[1]),
+            (PIXEL*)(dst->data[2] + y * dst->linesize[2]),
+            src + y * dst->w * 3, dst->w, 3);
+    }
+}
+
 /* val = 1.0 - val */
 static void gray_one_minus(ColorConvertState *s, PIXEL *y_ptr, int n)
 {
@@ -908,6 +948,7 @@ void bpg_md_free(BPGMetaData *md)
     }
 }
 
+#if 0
 Image *read_png(BPGMetaData **pmd,
                 FILE *f, BPGColorSpaceEnum color_space, int out_bit_depth,
                 int limited_range, int premultiplied_alpha)
@@ -1454,6 +1495,7 @@ Image *load_image(BPGMetaData **pmd, const char *infilename,
     *pmd = md;
     return img;
 }
+#endif
 
 void save_yuv1(Image *img, FILE *f)
 {
@@ -2158,17 +2200,6 @@ static int build_modified_hevc(uint8_t **pout_buf,
     return -1;
 }
 
-typedef enum {
-#if defined(USE_JCTVC)
-    HEVC_ENCODER_JCTVC,
-#endif
-#if defined(USE_X265)
-    HEVC_ENCODER_X265,
-#endif
-
-    HEVC_ENCODER_COUNT,
-} HEVCEncoderEnum;
-
 static char *hevc_encoder_name[HEVC_ENCODER_COUNT] = {
 #if defined(USE_JCTVC)
     "jctvc",
@@ -2200,28 +2231,6 @@ static HEVCEncoder *hevc_encoder_tab[HEVC_ENCODER_COUNT] = {
 #endif
 #define DEFAULT_COMPRESS_LEVEL 8
 
-
-typedef struct BPGEncoderContext BPGEncoderContext;
-
-typedef struct BPGEncoderParameters {
-    int qp; /* 0 ... 51 */
-    int alpha_qp; /* -1 ... 51. -1 means same as qp */
-    int lossless; /* true if lossless compression (qp and alpha_qp are
-                     ignored) */
-    BPGImageFormatEnum preferred_chroma_format;
-    int sei_decoded_picture_hash; /* 0, 1 */
-    int compress_level; /* 1 ... 9 */
-    int verbose;
-    HEVCEncoderEnum encoder_type;
-    int animated; /* 0 ... 1: if true, encode as animated image */
-    uint16_t loop_count; /* animations: number of loops. 0=infinite */
-    /* animations: the frame delay is a multiple of
-       frame_delay_num/frame_delay_den seconds */
-    uint16_t frame_delay_num;
-    uint16_t frame_delay_den;
-} BPGEncoderParameters;
-
-typedef int BPGEncoderWriteFunc(void *opaque, const uint8_t *buf, int buf_len);
 
 struct BPGEncoderContext {
     BPGEncoderParameters params;
@@ -2582,6 +2591,7 @@ void bpg_encoder_close(BPGEncoderContext *s)
     free(s);
 }
 
+#if 0
 static int my_write_func(void *opaque, const uint8_t *buf, int buf_len)
 {
     FILE *f = opaque;
@@ -2963,3 +2973,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+#endif
