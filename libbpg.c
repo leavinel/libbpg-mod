@@ -47,8 +47,6 @@
 #include <assert.h>
 #include "libbpg.h"
 
-#define BPG_HEADER_MAGIC 0x425047fb
-
 #define ITAPS2 4 
 #define ITAPS (2 * ITAPS2) /* number of taps of the interpolation filter */
 

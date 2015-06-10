@@ -53,13 +53,13 @@ EMLDFLAGS+=-s NO_FILESYSTEM=1 -s NO_BROWSER=1
 EMLDFLAGS+=-O3 --memory-init-file 0 --closure 1 --post-js post.js
 EMCFLAGS:=$(CFLAGS)
 
-LDFLAGS=-g
+#LDFLAGS=-g
 ifdef CONFIG_APPLE
 LDFLAGS+=-Wl,-dead_strip
 else
 LDFLAGS+=-Wl,--gc-sections
 endif
-CFLAGS+=-g
+#CFLAGS+=-g
 CXXFLAGS=$(CFLAGS)
 
 PROGS=bpgdec$(EXE) bpgenc$(EXE)

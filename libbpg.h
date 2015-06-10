@@ -24,6 +24,8 @@
 #ifndef _LIBBPG_H
 #define _LIBBPG_H
 
+#define BPG_HEADER_MAGIC 0x425047fb
+
 typedef struct BPGDecoderContext BPGDecoderContext;
 
 typedef enum {
