@@ -1,5 +1,5 @@
 /*
- * x265 encoder front-end  
+ * x265 encoder front-end
  *
  * Copyright (c) 2014 Fabrice Bellard
  *
@@ -45,7 +45,7 @@ static HEVCEncoderContext *x265_open(const HEVCEncodeParams *params)
     x265_param *p;
     int preset_index;
     const char *preset;
-    
+
     s = malloc(sizeof(HEVCEncoderContext));
     memset(s, 0, sizeof(*s));
 
@@ -61,7 +61,7 @@ static HEVCEncoderContext *x265_open(const HEVCEncodeParams *params)
         return NULL;
     }
 #endif
-    
+
     p = s->api->param_alloc();
 
     preset_index = params->compress_level; /* 9 is placebo */
@@ -69,7 +69,7 @@ static HEVCEncoderContext *x265_open(const HEVCEncodeParams *params)
     preset = x265_preset_names[preset_index];
     if (params->verbose)
         printf("Using x265 preset: %s\n", preset);
-    
+
     s->api->param_default_preset(p, preset, "ssim");
 
     p->bRepeatHeaders = 1;
@@ -109,7 +109,7 @@ static HEVCEncoderContext *x265_open(const HEVCEncodeParams *params)
         p->logLevel = X265_LOG_INFO;
     else
         p->logLevel = X265_LOG_NONE;
-        
+
     /* dummy frame rate */
     p->fpsNum = 25;
     p->fpsDenom = 1;
@@ -152,7 +152,7 @@ static int x265_encode(HEVCEncoderContext *s, Image *img)
     x265_picture *pic;
     uint32_t nal_count;
     x265_nal *p_nal;
-    
+
     pic = s->pic;
 
     if (img->format == BPG_FORMAT_GRAY)
@@ -179,7 +179,7 @@ static int x265_close(HEVCEncoderContext *s, uint8_t **pbuf)
     int buf_len, ret, i;
     uint32_t nal_count;
     x265_nal *p_nal;
-    
+
     /* get last compressed pictures */
     for(;;) {
         ret = s->api->encoder_encode(s->enc, &p_nal, &nal_count, NULL, NULL);
