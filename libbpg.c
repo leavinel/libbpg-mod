@@ -1,6 +1,6 @@
 /*
  * libbpg
- * 
+ *
  * Copyright (c) 2014 Fabrice Bellard
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,9 +32,9 @@
 
 /* The following global defines are used:
    - USE_VAR_BIT_DEPTH : support of bit depth > 8 bits
-   - USE_PRED : support of animations 
+   - USE_PRED : support of animations
 */
-   
+
 #ifndef EMSCRIPTEN
 #define USE_RGB48 /* support all pixel formats */
 //#define DEBUG
@@ -47,7 +47,7 @@
 #include <assert.h>
 #include "libbpg.h"
 
-#define ITAPS2 4 
+#define ITAPS2 4
 #define ITAPS (2 * ITAPS2) /* number of taps of the interpolation filter */
 
 #ifdef USE_VAR_BIT_DEPTH
@@ -69,7 +69,7 @@ typedef struct {
     int limited_range;
 } ColorConvertState;
 
-typedef void ColorConvertFunc(ColorConvertState *s, 
+typedef void ColorConvertFunc(ColorConvertState *s,
                               uint8_t *dst, const PIXEL *y_ptr,
                               const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                               int n, int incr);
@@ -150,7 +150,7 @@ static int get_ue32(uint32_t *pv, const uint8_t *buf, int len)
     uint32_t v;
     int a;
 
-    if (len <= 0) 
+    if (len <= 0)
         return -1;
     p = buf;
     a = *p++;
@@ -207,7 +207,7 @@ static int build_msps(uint8_t **pbuf, int *pbuf_len,
         return -1;
     input_data += ret;
     input_data_len -= ret;
-    
+
     if (len > input_data_len)
         return -1;
 
@@ -229,7 +229,7 @@ static int build_msps(uint8_t **pbuf, int *pbuf_len,
     assert(idx == msps_len);
     input_data += len;
     input_data_len -= len;
-    
+
     buf_len = 4 + 2 + msps_len * 2 + 4 + (input_data_len - len);
     buf = av_malloc(buf_len);
 
@@ -238,7 +238,7 @@ static int build_msps(uint8_t **pbuf, int *pbuf_len,
     buf[idx++] = 0x00;
     buf[idx++] = 0x00;
     buf[idx++] = 0x00;
-    buf[idx++] = 0x01; 
+    buf[idx++] = 0x01;
     buf[idx++] = (48 << 1); /* application specific NAL unit type */
     buf[idx++] = 1;
 
@@ -258,7 +258,7 @@ static int build_msps(uint8_t **pbuf, int *pbuf_len,
     if (idx == 0 || buf[idx - 1] == 0x00)
         buf[idx++] = 0x80;
     av_free(msps_buf);
-    
+
     *pbuf_len = idx;
     *pbuf = buf;
     return input_data_len1 - input_data_len;
@@ -324,7 +324,7 @@ static int dyn_buf_resize(DynBuf *s, int size)
     if (new_size < size)
         new_size = size;
     new_buf = av_realloc(s->buf, new_size);
-    if (!new_buf) 
+    if (!new_buf)
         return -1;
     s->buf = new_buf;
     s->size = new_size;
@@ -343,7 +343,7 @@ static int dyn_buf_push(DynBuf *s, const uint8_t *data, int len)
 extern AVCodec ff_hevc_decoder;
 
 static int hevc_decode_init1(DynBuf *pbuf, AVFrame **pframe,
-                             AVCodecContext **pc, 
+                             AVCodecContext **pc,
                              const uint8_t *buf, int buf_len,
                              int width, int height, int chroma_format_idc,
                              int bit_depth)
@@ -362,18 +362,18 @@ static int hevc_decode_init1(DynBuf *pbuf, AVFrame **pframe,
     av_free(nal_buf);
     if (ret1 < 0)
         return -1;
-    
+
     codec = &ff_hevc_decoder;
 
     c = avcodec_alloc_context3(codec);
-    if (!c) 
+    if (!c)
         return -1;
     frame = av_frame_alloc();
-    if (!frame) 
+    if (!frame)
         return -1;
     /* for testing: use the MD5 or CRC in SEI to check the decoded bit
        stream. */
-    c->err_recognition |= AV_EF_CRCCHECK; 
+    c->err_recognition |= AV_EF_CRCCHECK;
     /* open it */
     if (avcodec_open2(c, codec, NULL) < 0) {
         av_frame_free(&frame);
@@ -429,7 +429,7 @@ static int hevc_decode_frame_internal(BPGDecoderContext *s,
         nuh_layer_id = ((buf[start] & 1) << 5) | (buf[start + 1] >> 3);
         nut = (buf[start] >> 1) & 0x3f;
 #if 0
-        printf("nal: type=%d layer_id=%d fs=%d %d\n", 
+        printf("nal: type=%d layer_id=%d fs=%d %d\n",
                nut, nuh_layer_id, frame_start_found[0], frame_start_found[1]);
 #endif
         /* Note: we assume the alpha and color data are correctly
@@ -437,7 +437,7 @@ static int hevc_decode_frame_internal(BPGDecoderContext *s,
         if ((nut >= 32 && nut <= 35) || nut == 39 || nut >= 41) {
             if (frame_start_found[0] && frame_start_found[has_alpha])
                 break;
-        } else if ((nut <= 9 || (nut >= 16 && nut <= 21)) &&  
+        } else if ((nut <= 9 || (nut >= 16 && nut <= 21)) &&
                    start + 2 < buf_len && (buf[start + 2] & 0x80)) {
             /* first slice segment */
             if (frame_start_found[0] && frame_start_found[has_alpha])
@@ -447,7 +447,7 @@ static int hevc_decode_frame_internal(BPGDecoderContext *s,
             else
                 frame_start_found[0] = 1;
         }
-        
+
         nal_len = find_nal_end(buf, buf_len, !first_nal);
         if (nal_len < 0)
             goto fail;
@@ -470,7 +470,7 @@ static int hevc_decode_frame_internal(BPGDecoderContext *s,
         buf_len -= nal_len;
         first_nal = 0;
     }
-    
+
     if (s->alpha_dec_ctx) {
         if (dyn_buf_resize(abuf, abuf->len + FF_INPUT_BUFFER_PADDING_SIZE) < 0)
             goto fail;
@@ -514,15 +514,15 @@ static int hevc_decode_start(BPGDecoderContext *s,
         buf += ret;
         buf_len -= ret;
     }
-    
+
     ret = hevc_decode_init1(cbuf, &s->frame, &s->dec_ctx,
-                            buf, buf_len, width, height, chroma_format_idc, 
+                            buf, buf_len, width, height, chroma_format_idc,
                             bit_depth);
     if (ret < 0)
         goto fail;
     buf += ret;
     buf_len -= ret;
-    
+
     ret = hevc_decode_frame_internal(s, abuf, cbuf, buf, buf_len, 1);
     av_free(abuf->buf);
     av_free(cbuf->buf);
@@ -568,7 +568,7 @@ static void hevc_decode_end(BPGDecoderContext *s)
 uint8_t *bpg_decoder_get_data(BPGDecoderContext *img, int *pline_size, int plane)
 {
     int c_count;
-    if (img->format == BPG_FORMAT_GRAY) 
+    if (img->format == BPG_FORMAT_GRAY)
         c_count = 1;
     else
         c_count = 3;
@@ -646,9 +646,9 @@ static void interp2p0_simple(PIXEL *dst, const PIXEL *src, int n, int bit_depth)
     pixel_max = (1 << bit_depth) - 1;
     while (n >= 2) {
         dst[0] = src[0];
-        dst[1] = clamp_pix(((src[-3] + src[4]) * IP0C3 + 
-                            (src[-2] + src[3]) * IP0C2 + 
-                            (src[-1] + src[2]) * IP0C1 + 
+        dst[1] = clamp_pix(((src[-3] + src[4]) * IP0C3 +
+                            (src[-2] + src[3]) * IP0C2 +
+                            (src[-1] + src[2]) * IP0C1 +
                             (src[0] + src[1]) * IP0C0 + 32) >> 6, pixel_max);
         dst += 2;
         src++;
@@ -671,9 +671,9 @@ static void interp2p0_simple16(PIXEL *dst, const int16_t *src, int n, int bit_de
 
     while (n >= 2) {
         dst[0] = clamp_pix((src[0] + offset0) >> shift0, pixel_max);
-        dst[1] = clamp_pix(((src[-3] + src[4]) * IP0C3 + 
-                            (src[-2] + src[3]) * IP0C2 + 
-                            (src[-1] + src[2]) * IP0C1 + 
+        dst[1] = clamp_pix(((src[-3] + src[4]) * IP0C3 +
+                            (src[-2] + src[3]) * IP0C2 +
+                            (src[-1] + src[2]) * IP0C1 +
                             (src[0] + src[1]) * IP0C0 + offset1) >> shift1,
                            pixel_max);
         dst += 2;
@@ -708,11 +708,11 @@ static void interp2p1_simple(PIXEL *dst, const PIXEL *src, int n, int bit_depth)
         a4 = a5;
         a5 = a6;
         a6 = src[3];
-        dst[0] = clamp_pix((a0 * IP1C6 + a1 * IP1C5 + a2 * IP1C4 + a3 * IP1C3 + 
-                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + 32) >> 6, 
+        dst[0] = clamp_pix((a0 * IP1C6 + a1 * IP1C5 + a2 * IP1C4 + a3 * IP1C3 +
+                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + 32) >> 6,
                            pixel_max);
         dst[1] = clamp_pix((a0 * IP1C0 + a1 * IP1C1 + a2 * IP1C2 + a3 * IP1C3 +
-                            a4 * IP1C4 + a5 * IP1C5 + a6 * IP1C6 + 32) >> 6, 
+                            a4 * IP1C4 + a5 * IP1C5 + a6 * IP1C6 + 32) >> 6,
                            pixel_max);
         dst += 2;
         src++;
@@ -726,13 +726,13 @@ static void interp2p1_simple(PIXEL *dst, const PIXEL *src, int n, int bit_depth)
         a4 = a5;
         a5 = a6;
         a6 = src[3];
-        dst[0] = clamp_pix((a0 * IP1C6 + a1 * IP1C5 + a2 * IP1C4 + a3 * IP1C3 + 
-                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + 32) >> 6, 
+        dst[0] = clamp_pix((a0 * IP1C6 + a1 * IP1C5 + a2 * IP1C4 + a3 * IP1C3 +
+                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + 32) >> 6,
                            pixel_max);
     }
 }
 
-static void interp2p1_simple16(PIXEL *dst, const int16_t *src, int n, 
+static void interp2p1_simple16(PIXEL *dst, const int16_t *src, int n,
                                int bit_depth)
 {
     int shift, offset, pixel_max, a0, a1, a2, a3, a4, a5, a6;
@@ -775,7 +775,7 @@ static void interp2p1_simple16(PIXEL *dst, const int16_t *src, int n,
         a5 = a6;
         a6 = src[3];
         dst[0] = clamp_pix((a0 * IP1C6 + a1 * IP1C5 + a2 * IP1C4 + a3 * IP1C3 +
-                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + offset) >> shift, 
+                            a4 * IP1C2 + a5 * IP1C1 + a6 * IP1C0 + offset) >> shift,
                            pixel_max);
     }
 }
@@ -828,18 +828,18 @@ static void interp2_vh(PIXEL *dst, PIXEL **src, int n, int y_pos,
     n2 = (n + 1) / 2;
     if (frac_pos == 0) {
         for(i = 0; i < n2; i++) {
-            tmp_buf[ITAPS2 - 1 + i] = 
-                (src0[i] * IP1C6 + src1[i] * IP1C5 + 
-                 src2[i] * IP1C4 + src3[i] * IP1C3 + 
-                 src4[i] * IP1C2 + src5[i] * IP1C1 + 
+            tmp_buf[ITAPS2 - 1 + i] =
+                (src0[i] * IP1C6 + src1[i] * IP1C5 +
+                 src2[i] * IP1C4 + src3[i] * IP1C3 +
+                 src4[i] * IP1C2 + src5[i] * IP1C1 +
                  src6[i] * IP1C0 + rnd) >> shift;
         }
     } else {
         for(i = 0; i < n2; i++) {
-            tmp_buf[ITAPS2 - 1 + i] = 
-                (src0[i] * IP1C0 + src1[i] * IP1C1 + 
-                 src2[i] * IP1C2 + src3[i] * IP1C3 + 
-                 src4[i] * IP1C4 + src5[i] * IP1C5 + 
+            tmp_buf[ITAPS2 - 1 + i] =
+                (src0[i] * IP1C0 + src1[i] * IP1C1 +
+                 src2[i] * IP1C2 + src3[i] * IP1C3 +
+                 src4[i] * IP1C4 + src5[i] * IP1C5 +
                  src6[i] * IP1C6 + rnd) >> shift;
         }
     }
@@ -884,7 +884,7 @@ static void ycc_to_rgb24(ColorConvertState *s, uint8_t *dst, const PIXEL *y_ptr,
     }
 }
 
-static void ycgco_to_rgb24(ColorConvertState *s, 
+static void ycgco_to_rgb24(ColorConvertState *s,
                            uint8_t *dst, const PIXEL *y_ptr,
                            const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                            int n, int incr)
@@ -909,7 +909,7 @@ static void ycgco_to_rgb24(ColorConvertState *s,
 }
 
 /* c = c * alpha */
-static void alpha_combine8(ColorConvertState *s, 
+static void alpha_combine8(ColorConvertState *s,
                            uint8_t *dst, const PIXEL *a_ptr, int n, int incr)
 {
     uint8_t *q = dst;
@@ -978,7 +978,7 @@ static void alpha_divide8(uint8_t *dst, int n)
     }
 }
 
-static void gray_to_rgb24(ColorConvertState *s, 
+static void gray_to_rgb24(ColorConvertState *s,
                           uint8_t *dst, const PIXEL *y_ptr,
                           const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                           int n, int incr)
@@ -1044,7 +1044,7 @@ static void put_dummy_gray8(uint8_t *dst, int n, int incr)
     }
 }
 
-static void gray_to_gray8(ColorConvertState *s, 
+static void gray_to_gray8(ColorConvertState *s,
                           uint8_t *dst, const PIXEL *y_ptr,
                           int n, int incr)
 {
@@ -1118,7 +1118,7 @@ static void ycc_to_rgb48(ColorConvertState *s, uint8_t *dst, const PIXEL *y_ptr,
     }
 }
 
-static void ycgco_to_rgb48(ColorConvertState *s, 
+static void ycgco_to_rgb48(ColorConvertState *s,
                            uint8_t *dst, const PIXEL *y_ptr,
                            const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                            int n, int incr)
@@ -1142,7 +1142,7 @@ static void ycgco_to_rgb48(ColorConvertState *s,
     }
 }
 
-static void gray_to_rgb48(ColorConvertState *s, 
+static void gray_to_rgb48(ColorConvertState *s,
                           uint8_t *dst, const PIXEL *y_ptr,
                           const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                           int n, int incr)
@@ -1162,7 +1162,7 @@ static void gray_to_rgb48(ColorConvertState *s,
     }
 }
 
-static void gray_to_gray16(ColorConvertState *s, 
+static void gray_to_gray16(ColorConvertState *s,
                            uint16_t *dst, const PIXEL *y_ptr,
                            int n, int incr)
 {
@@ -1179,7 +1179,7 @@ static void gray_to_gray16(ColorConvertState *s,
     }
 }
 
-static void luma_to_gray16(ColorConvertState *s, 
+static void luma_to_gray16(ColorConvertState *s,
                            uint16_t *dst, const PIXEL *y_ptr,
                            int n, int incr)
 {
@@ -1196,7 +1196,7 @@ static void luma_to_gray16(ColorConvertState *s,
     }
 }
 
-static void rgb_to_rgb48(ColorConvertState *s, 
+static void rgb_to_rgb48(ColorConvertState *s,
                          uint8_t *dst, const PIXEL *y_ptr,
                          const PIXEL *cb_ptr, const PIXEL *cr_ptr,
                          int n, int incr)
@@ -1216,7 +1216,7 @@ static void put_dummy_gray16(uint16_t *dst, int n, int incr)
 }
 
 /* c = c * alpha */
-static void alpha_combine16(ColorConvertState *s, 
+static void alpha_combine16(ColorConvertState *s,
                             uint16_t *dst, const PIXEL *a_ptr, int n, int incr)
 {
     uint16_t *q = dst;
@@ -1294,7 +1294,7 @@ static ColorConvertFunc *cs_to_rgb48[BPG_CS_COUNT] = {
 };
 #endif
 
-static void convert_init(ColorConvertState *s, 
+static void convert_init(ColorConvertState *s,
                          int in_bit_depth, int out_bit_depth,
                          BPGColorSpaceEnum color_space,
                          int limited_range)
@@ -1307,9 +1307,9 @@ static void convert_init(ColorConvertState *s,
     out_pixel_max = (1 << out_bit_depth) - 1;
     mult = (double)out_pixel_max * (1 << c_shift) / (double)in_pixel_max;
     if (limited_range) {
-        mult_y = (double)out_pixel_max * (1 << c_shift) / 
+        mult_y = (double)out_pixel_max * (1 << c_shift) /
             (double)(219 << (in_bit_depth - 8));
-        mult_c = (double)out_pixel_max * (1 << c_shift) / 
+        mult_c = (double)out_pixel_max * (1 << c_shift) /
             (double)(224 << (in_bit_depth - 8));
     } else {
         mult_y = mult;
@@ -1321,7 +1321,7 @@ static void convert_init(ColorConvertState *s,
         k_b = 0.114;
         goto convert_ycc;
     case BPG_CS_YCbCr_BT709:
-        k_r = 0.2126; 
+        k_r = 0.2126;
         k_b = 0.0722;
         goto convert_ycc;
     case BPG_CS_YCbCr_BT2020:
@@ -1370,7 +1370,7 @@ static int bpg_decoder_output_init(BPGDecoderContext *s,
                    out_fmt == BPG_OUTPUT_FORMAT_CMYK64);
     s->is_cmyk = (out_fmt == BPG_OUTPUT_FORMAT_CMYK32 ||
                   out_fmt == BPG_OUTPUT_FORMAT_CMYK64);
-    
+
     if (s->format == BPG_FORMAT_420 || s->format == BPG_FORMAT_422) {
         s->w2 = (s->w + 1) / 2;
         s->h2 = (s->h + 1) / 2;
@@ -1393,7 +1393,7 @@ static int bpg_decoder_output_init(BPGDecoderContext *s,
 #ifdef USE_RGB48
         if (s->is_16bpp) {
             s->cvt_func = gray_to_rgb48;
-        } else 
+        } else
 #endif
         {
             s->cvt_func = gray_to_rgb24;
@@ -1430,7 +1430,7 @@ int bpg_decoder_start(BPGDecoderContext *s, BPGDecoderOutputFormat out_fmt)
 
     if (!s->frame)
         return -1;
-    
+
     if (!s->output_inited) {
         /* first frame is already decoded */
         ret = bpg_decoder_output_init(s, out_fmt);
@@ -1446,13 +1446,13 @@ int bpg_decoder_start(BPGDecoderContext *s, BPGDecoderOutputFormat out_fmt)
             if (s->input_buf_pos >= s->input_buf_len) {
                 return -1;
             } else {
-                ret = hevc_decode_frame(s, s->input_buf + s->input_buf_pos, 
+                ret = hevc_decode_frame(s, s->input_buf + s->input_buf_pos,
                                         s->input_buf_len - s->input_buf_pos);
                 if (ret < 0)
                     return -1;
                 s->input_buf_pos += ret;
             }
-        } else 
+        } else
 #endif
         {
             return -1;
@@ -1480,7 +1480,7 @@ void bpg_decoder_get_frame_duration(BPGDecoderContext *s, int *pnum, int *pden)
     if (s->frame && s->has_animation) {
         *pnum = s->frame_delay_num * (s->frame->pts);
         *pden = s->frame_delay_den;
-    } else 
+    } else
 #endif
     {
         *pnum = 0;
@@ -1495,10 +1495,10 @@ int bpg_decoder_get_line(BPGDecoderContext *s, void *rgb_line1)
     PIXEL *y_ptr, *cb_ptr, *cr_ptr, *a_ptr;
 
     y = s->y;
-    if ((unsigned)y >= s->h) 
+    if ((unsigned)y >= s->h)
         return -1;
     w = s->w;
-    
+
     y_ptr = (PIXEL *)(s->y_buf + y * s->y_linesize);
     incr = 3 + (s->is_rgba || s->is_cmyk);
     switch(s->format) {
@@ -1546,7 +1546,7 @@ int bpg_decoder_get_line(BPGDecoderContext *s, void *rgb_line1)
     case BPG_FORMAT_422:
         cb_ptr = (PIXEL *)(s->cb_buf + y * s->cb_linesize);
         cr_ptr = (PIXEL *)(s->cr_buf + y * s->cr_linesize);
-        interp2_h(s->cb_buf2, cb_ptr, w, s->bit_depth, s->c_h_phase, 
+        interp2_h(s->cb_buf2, cb_ptr, w, s->bit_depth, s->c_h_phase,
                   (PIXEL *)s->c_buf4);
         interp2_h(s->cr_buf2, cr_ptr, w, s->bit_depth, s->c_h_phase,
                   (PIXEL *)s->c_buf4);
@@ -1598,7 +1598,7 @@ int bpg_decoder_get_line(BPGDecoderContext *s, void *rgb_line1)
         if (s->is_16bpp) {
             if (s->has_alpha) {
                 a_ptr = (PIXEL *)(s->a_buf + y * s->a_linesize);
-                gray_to_gray16(&s->cvt, 
+                gray_to_gray16(&s->cvt,
                                (uint16_t *)rgb_line + 3, a_ptr, w, 4);
                 if (s->premultiplied_alpha)
                     alpha_divide16((uint16_t *)rgb_line, w);
@@ -1687,7 +1687,7 @@ static int bpg_decode_header(BPGHeaderData *h,
     h->has_alpha = 0;
     h->has_w_plane = 0;
     h->premultiplied_alpha = 0;
-    
+
     if (alpha1_flag) {
         h->has_alpha = 1;
         h->premultiplied_alpha = alpha2_flag;
@@ -1696,7 +1696,7 @@ static int bpg_decode_header(BPGHeaderData *h,
         h->has_w_plane = 1;
     }
 
-    if (h->color_space >= BPG_CS_COUNT || 
+    if (h->color_space >= BPG_CS_COUNT ||
         (h->format == BPG_FORMAT_GRAY && h->color_space != 0) ||
         (h->has_w_plane && h->format == BPG_FORMAT_GRAY))
         return -1;
@@ -1717,7 +1717,7 @@ static int bpg_decode_header(BPGHeaderData *h,
     if (ret < 0)
         return -1;
     idx += ret;
-           
+
     extension_data_len = 0;
     if (has_extension) {
         ret = get_ue(&extension_data_len, buf + idx, buf_len - idx);
@@ -1740,15 +1740,15 @@ static int bpg_decode_header(BPGHeaderData *h,
             plast_md = &h->first_md;
             while (idx < ext_end) {
                 ret = get_ue32(&tag, buf + idx, ext_end - idx);
-                if (ret < 0) 
+                if (ret < 0)
                     goto fail;
                 idx += ret;
 
                 ret = get_ue(&buf_len, buf + idx, ext_end - idx);
-                if (ret < 0) 
+                if (ret < 0)
                     goto fail;
                 idx += ret;
-                
+
                 if (idx + buf_len > ext_end) {
                 fail:
                     bpg_decoder_free_extension_data(h->first_md);
@@ -1760,15 +1760,15 @@ static int bpg_decode_header(BPGHeaderData *h,
 
                     idx1 = idx;
                     ret = get_ue(&loop_count, buf + idx1, ext_end - idx1);
-                    if (ret < 0) 
+                    if (ret < 0)
                         goto fail;
                     idx1 += ret;
                     ret = get_ue(&frame_delay_num, buf + idx1, ext_end - idx1);
-                    if (ret < 0) 
+                    if (ret < 0)
                         goto fail;
                     idx1 += ret;
                     ret = get_ue(&frame_delay_den, buf + idx1, ext_end - idx1);
-                    if (ret < 0) 
+                    if (ret < 0)
                         goto fail;
                     idx1 += ret;
                     if (frame_delay_num == 0 || frame_delay_den == 0 ||
@@ -1786,7 +1786,7 @@ static int bpg_decode_header(BPGHeaderData *h,
                     md->buf_len = buf_len;
                     *plast_md = md;
                     plast_md = &md->next;
-                    
+
                     md->buf = av_malloc(md->buf_len);
                     memcpy(md->buf, buf + idx, md->buf_len);
                 }
@@ -1805,7 +1805,7 @@ static int bpg_decode_header(BPGHeaderData *h,
 
     if (h->hevc_data_len == 0)
         h->hevc_data_len = buf_len - idx;
-    
+
     return idx;
 }
 
@@ -1823,7 +1823,7 @@ int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
     has_alpha = h->has_alpha;
     color_space = h->color_space;
     bit_depth = h->bit_depth;
-    
+
     img->w = width;
     img->h = height;
     img->format = h->format;
@@ -1863,7 +1863,7 @@ int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
 #ifdef USE_PRED
     /* XXX: add an option to avoid decoding animations ? */
     img->decode_animation = 1;
-    if (img->has_animation && img->decode_animation) { 
+    if (img->has_animation && img->decode_animation) {
         int len;
         /* keep trailing bitstream to decode the next frames */
         len = buf_len - idx;
@@ -1873,7 +1873,7 @@ int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
         memcpy(img->input_buf, buf + idx, len);
         img->input_buf_len = len;
         img->input_buf_pos = 0;
-    } else 
+    } else
 #endif
     {
         hevc_decode_end(img);
@@ -1906,7 +1906,7 @@ void bpg_decoder_free_extension_data(BPGExtensionData *first_md)
 {
 #ifndef EMSCRIPTEN
     BPGExtensionData *md, *md_next;
-    
+
     for(md = first_md; md != NULL; md = md_next) {
         md_next = md->next;
         av_free(md->buf);
@@ -1926,7 +1926,7 @@ BPGExtensionData *bpg_decoder_get_extension_data(BPGDecoderContext *s)
     return s->first_md;
 }
 
-int bpg_decoder_get_info_from_buf(BPGImageInfo *p, 
+int bpg_decoder_get_info_from_buf(BPGImageInfo *p,
                                   BPGExtensionData **pfirst_md,
                                   const uint8_t *buf, int buf_len)
 {
@@ -1934,7 +1934,7 @@ int bpg_decoder_get_info_from_buf(BPGImageInfo *p,
     int parse_extension;
 
     parse_extension = (pfirst_md != NULL);
-    if (bpg_decode_header(h, buf, buf_len, 
+    if (bpg_decode_header(h, buf, buf_len,
                           !parse_extension, parse_extension) < 0)
         return -1;
     p->width = h->width;
