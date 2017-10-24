@@ -65,7 +65,7 @@ typedef struct {
     int verbose;
 } HEVCEncodeParams;
 
-typedef struct HEVCEncoderContext HEVCEncoderContext; 
+typedef struct HEVCEncoderContext HEVCEncoderContext;
 
 typedef struct {
     HEVCEncoderContext *(*open)(const HEVCEncodeParams *params);
@@ -76,7 +76,7 @@ typedef struct {
 extern HEVCEncoder jctvc_encoder;
 extern HEVCEncoder x265_hevc_encoder;
 
-int x265_encode_picture(uint8_t **pbuf, Image *img, 
+int x265_encode_picture(uint8_t **pbuf, Image *img,
                         const HEVCEncodeParams *params);
 void save_yuv1(Image *img, FILE *f);
 void save_yuv(Image *img, const char *filename);

@@ -4,7 +4,7 @@
 #
 # Enable compilation of Javascript decoder with Emscripten
 #USE_EMCC=y
-# Enable x265 for the encoder (you must install it before)
+# Enable x265 for the encoder
 USE_X265=y
 # Enable the JCTVC code (best quality but slow) for the encoder
 #USE_JCTVC=y
@@ -50,8 +50,9 @@ endif
 # Emscriptem config
 EMLDFLAGS:=-s "EXPORTED_FUNCTIONS=['_bpg_decoder_open','_bpg_decoder_decode','_bpg_decoder_get_info','_bpg_decoder_start','_bpg_decoder_get_frame_duration','_bpg_decoder_get_line','_bpg_decoder_close','_malloc','_free']"
 EMLDFLAGS+=-s NO_FILESYSTEM=1 -s NO_BROWSER=1
-#EMLDFLAGS+=-O1 --post-js post.js
-EMLDFLAGS+=-O3 --memory-init-file 0 --closure 1 --post-js post.js
+#EMLDFLAGS+=-O1 --pre-js pre.js --post-js post.js
+# Note: the closure compiler is disabled because it adds unwanted global symbols
+EMLDFLAGS+=-O3 --memory-init-file 0 --closure 0 --pre-js pre.js --post-js post.js
 EMCFLAGS:=$(CFLAGS)
 
 #LDFLAGS=-g
@@ -178,10 +179,10 @@ bpgdec.js: $(LIBBPG_JS_OBJS) post.js
 	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=33554432 -o $@ $(LIBBPG_JS_OBJS)
 
 bpgdec8.js: $(LIBBPG_JS8_OBJS) post.js
-	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=16777216 -o $@ $(LIBBPG_JS8_OBJS)
+	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=33554432 -o $@ $(LIBBPG_JS8_OBJS)
 
 bpgdec8a.js: $(LIBBPG_JS8A_OBJS) post.js
-	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=16777216 -o $@ $(LIBBPG_JS8A_OBJS)
+	$(EMCC) $(EMLDFLAGS) -s TOTAL_MEMORY=33554432 -o $@ $(LIBBPG_JS8A_OBJS)
 
 size:
 	strip bpgdec

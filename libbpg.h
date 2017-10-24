@@ -24,6 +24,7 @@
 #ifndef _LIBBPG_H
 #define _LIBBPG_H
 
+#include <inttypes.h>
 #define BPG_HEADER_MAGIC 0x425047fb
 
 typedef struct BPGDecoderContext BPGDecoderContext;
