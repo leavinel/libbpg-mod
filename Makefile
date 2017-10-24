@@ -7,7 +7,7 @@
 # Enable x265 for the encoder (you must install it before)
 USE_X265=y
 # Enable the JCTVC code (best quality but slow) for the encoder
-USE_JCTVC=y
+#USE_JCTVC=y
 # Compile bpgview (SDL and SDL_image libraries needed)
 #USE_BPGVIEW=y
 # Enable it to use bit depths > 12 (need more tests to validate encoder)
@@ -39,6 +39,7 @@ EMCC=emcc
 PWD:=$(shell pwd)
 
 CFLAGS:=-O2 -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
+CFLAGS+=-march=i686
 CFLAGS+=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
 CFLAGS+=-I.
 CFLAGS+=-DCONFIG_BPG_VERSION=\"$(shell cat VERSION)\"
@@ -101,7 +102,10 @@ BPGENC_OBJS+=x265_glue.o
 LIBBPG_OBJS+=x265_glue.o
 BPGENC_LIBS+= -lx265
 bpgenc.o: CFLAGS+=-DUSE_X265
-x265_glue.o: CFLAGS+=-I../libx265
+ifndef LIBX265_PATH
+  $(error LIBX265_PATH not defined)
+endif
+x265_glue.o: CFLAGS+=-I$(LIBX265_PATH)
 endif # USE_X265
 
 ifdef USE_JCTVC

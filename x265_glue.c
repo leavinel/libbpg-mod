@@ -53,11 +53,12 @@ static HEVCEncoderContext *x265_open(const HEVCEncodeParams *params)
                 x265_max_bit_depth, x265_max_bit_depth);
         return NULL;
     }
+#if 0
     if (params->chroma_format == BPG_FORMAT_GRAY) {
         fprintf(stderr, "x265 does not support monochrome (or alpha) data yet. Plase use the jctvc encoder.\n");
         return NULL;
     }
-
+#endif
     p = x265_param_alloc();
 
     preset_index = params->compress_level; /* 9 is placebo */

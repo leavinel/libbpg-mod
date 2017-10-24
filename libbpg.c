@@ -586,8 +586,10 @@ uint8_t *bpg_decoder_get_data(BPGDecoderContext *img, int *pline_size, int plane
 
 int bpg_decoder_get_info(BPGDecoderContext *img, BPGImageInfo *p)
 {
+#if 0
     if (!img->frame)
         return -1;
+#endif
     p->width = img->w;
     p->height = img->h;
     p->format = img->format;
@@ -1411,6 +1413,7 @@ static int bpg_decoder_output_init(BPGDecoderContext *s,
     return 0;
 }
 
+
 static void bpg_decoder_output_end(BPGDecoderContext *s)
 {
     int i;
@@ -1809,7 +1812,7 @@ static int bpg_decode_header(BPGHeaderData *h,
     return idx;
 }
 
-int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
+static int _bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len, int header_only)
 {
     int idx, has_alpha, bit_depth, color_space, ret;
     uint32_t width, height;
@@ -1853,6 +1856,9 @@ int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
     if (idx + h->hevc_data_len > buf_len)
         goto fail;
 
+    if (header_only)
+        return 0;
+
     /* decode the first frame */
     ret = hevc_decode_start(img, buf + idx, buf_len - idx,
                             width, height, img->format, bit_depth, has_alpha);
@@ -1889,6 +1895,16 @@ int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
     bpg_decoder_free_extension_data(img->first_md);
     img->first_md = NULL;
     return -1;
+}
+
+int bpg_decoder_decode_header_only(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
+{
+    return _bpg_decoder_decode (img, buf, buf_len, 1);
+}
+
+int bpg_decoder_decode(BPGDecoderContext *img, const uint8_t *buf, int buf_len)
+{
+    return _bpg_decoder_decode (img, buf, buf_len, 0);
 }
 
 void bpg_decoder_close(BPGDecoderContext *s)
