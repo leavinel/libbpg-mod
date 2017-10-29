@@ -85,11 +85,11 @@ void save_yuv(Image *img, const char *filename);
 typedef struct BPGEncoderContext BPGEncoderContext;
 
 typedef enum {
-#if defined(USE_JCTVC)
-    HEVC_ENCODER_JCTVC,
-#endif
 #if defined(USE_X265)
     HEVC_ENCODER_X265,
+#endif
+#if defined(USE_JCTVC)
+    HEVC_ENCODER_JCTVC,
 #endif
 
     HEVC_ENCODER_COUNT,
@@ -117,7 +117,7 @@ typedef int BPGEncoderWriteFunc(void *opaque, const uint8_t *buf, int buf_len);
 
 BPGEncoderParameters *bpg_encoder_param_alloc(void);
 void bpg_encoder_param_free(BPGEncoderParameters *p);
-BPGEncoderContext *bpg_encoder_open(BPGEncoderParameters *p);
+BPGEncoderContext *bpg_encoder_open(const BPGEncoderParameters *p);
 
 int bpg_encoder_encode (BPGEncoderContext *s, Image *img,
    BPGEncoderWriteFunc *write_func, void *opaque);

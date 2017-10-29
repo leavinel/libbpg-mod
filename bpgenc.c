@@ -2202,17 +2202,6 @@ static int build_modified_hevc(uint8_t **pout_buf,
     return -1;
 }
 
-typedef enum {
-#if defined(USE_X265)
-    HEVC_ENCODER_X265,
-#endif
-#if defined(USE_JCTVC)
-    HEVC_ENCODER_JCTVC,
-#endif
-
-    HEVC_ENCODER_COUNT,
-} HEVCEncoderEnum;
-
 static char *hevc_encoder_name[HEVC_ENCODER_COUNT] = {
 #if defined(USE_X265)
     "x265",
@@ -2288,7 +2277,7 @@ void bpg_encoder_param_free(BPGEncoderParameters *p)
     free(p);
 }
 
-BPGEncoderContext *bpg_encoder_open(BPGEncoderParameters *p)
+BPGEncoderContext *bpg_encoder_open(const BPGEncoderParameters *p)
 {
     BPGEncoderContext *s;
 
