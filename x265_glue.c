@@ -199,6 +199,7 @@ static int x265_close(HEVCEncoderContext *s, uint8_t **pbuf)
 
     s->api->encoder_close(s->enc);
     s->api->picture_free(s->pic);
+    s->api->cleanup();
     free(s);
     return buf_len;
 }
