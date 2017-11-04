@@ -39,7 +39,9 @@ EMCC=emcc
 PWD:=$(shell pwd)
 
 CFLAGS:=-O2 -Wall -MMD -fno-asynchronous-unwind-tables -fdata-sections -ffunction-sections -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -fomit-frame-pointer
-CFLAGS+=-march=i686
+ifneq ($(X64),1)
+  CFLAGS+=-march=i686
+endif
 CFLAGS+=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
 CFLAGS+=-I.
 CFLAGS+=-DCONFIG_BPG_VERSION=\"$(shell cat VERSION)\"
